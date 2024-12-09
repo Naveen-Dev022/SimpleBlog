@@ -1,0 +1,14 @@
+@BlogWebApi_HostAddress = https://localhost:7095
+
+GET {{BlogWebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+POST {{BlogWebApi_HostAddress}}/api/Article
+
+###
+
+DELETE {{BlogWebApi_HostAddress}}/api/article?id=0
+
+###
