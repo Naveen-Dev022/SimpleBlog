@@ -1,35 +1,38 @@
 ﻿using BlogWebApi.Data;
 using BlogWebApi.DTO;
 using BlogWebApi.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace BlogWebApi.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class ArticleController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public ArticleController(AppDbContext context) { 
-            _context = context;
+        private readonly IArticleRepository _repository;
+
+        public ArticleController(IArticleRepository repository)
+        {
+            _repository = repository;
         }
+
         [Route("Articles")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BlogPost>>> Articles()
         {
-            IEnumerable<BlogPost> posts = await _context.Posts.ToListAsync();
-
+            var posts = await _repository.GetAllArticlesAsync();
             if (posts.Any())
             {
                 return Ok(posts);
             }
             else
+            {
                 return NoContent();
+            }
         }
+
         [HttpPost]
         public async Task<IActionResult> Articles([FromBody] BlogPostDTO articles)
         {
@@ -37,28 +40,29 @@ namespace BlogWebApi.Controllers
                 return BadRequest(articles);
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            BlogPost blogPost = new BlogPost()
+
+            var blogPost = new BlogPost
             {
                 Title = articles.Title,
                 Summary = articles.Summary,
-                Body = articles.Summary,
+                Body = articles.Body,
                 AuthorId = articles.AuthorId,
                 Tags = articles.Tags,
                 IsPremium = articles.IsPremium
             };
-           await _context.AddAsync(blogPost);
-           await _context.SaveChangesAsync();
+
+            await _repository.AddArticleAsync(blogPost);
             return Ok(blogPost);
         }
-        [HttpDelete]
-        public ActionResult Articles(int id)
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Articles(int id)
         {
-            var post = _context.Posts.FirstOrDefault(u => u.BlogId == id);
-            if (post is null)
+            var post = await _repository.GetArticleByIdAsync(id);
+            if (post == null)
                 return BadRequest();
 
-            _context.Posts.Remove(post);
-            _context.SaveChanges();
+            await _repository.DeleteArticleAsync(id);
             return NoContent();
         }
     }

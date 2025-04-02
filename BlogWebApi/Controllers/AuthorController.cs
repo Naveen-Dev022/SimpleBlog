@@ -1,66 +1,67 @@
 ﻿using BlogWebApi.Data;
 using BlogWebApi.DTO;
 using BlogWebApi.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BlogWebApi.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class AuthorController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public AuthorController(AppDbContext context)
+        private readonly IAuthorRepository _repository;
+
+        public AuthorController(IAuthorRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
         [Route("Authors")]
         [HttpGet]
-        public ActionResult<IEnumerable<AuthorDTO>> Authors()
+        public async Task<ActionResult<IEnumerable<AuthorDTO>>> Authors()
         {
-           var authors =  _context.Authors.Select(a => new AuthorDTO
+            var authors = await _repository.GetAllAuthorsAsync();
+            var authorDTOs = authors.Select(a => new AuthorDTO
             {
                 AuthorId = a.AuthorId,
                 Name = a.Name,
                 Description = a.Description
             }).ToList();
-            return Ok(authors);
+            return Ok(authorDTOs);
         }
 
         [Route("Authors")]
         [HttpPost]
-        public ActionResult<AuthorDTO> Authors([FromBody] AuthorDTO author)
+        public async Task<ActionResult<AuthorDTO>> Authors([FromBody] AuthorDTO author)
         {
             if (!ModelState.IsValid || author is null)
             {
                 return BadRequest(ModelState);
             }
-             if(author.AuthorId > 0)
+            if (author.AuthorId > 0)
                 return StatusCode(StatusCodes.Status500InternalServerError);
-            Author authorAdd = new()
+
+            var authorAdd = new Author
             {
                 Name = author.Name,
                 Description = author.Description,
                 Deleted = false
             };
-            _context.Authors.Add(authorAdd);
-            _context.SaveChanges();
+
+            await _repository.AddAuthorAsync(authorAdd);
             return Ok();
         }
-        [HttpDelete]
-        public ActionResult Authors(int id)
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Authors(int id)
         {
-            var author = _context.Authors.FirstOrDefault(u => u.AuthorId == id);
-            if (author is null)
+            var author = await _repository.GetAuthorByIdAsync(id);
+            if (author == null)
                 return BadRequest();
 
-            _context.Authors.Remove(author);
-            _context.SaveChanges();
+            await _repository.DeleteAuthorAsync(id);
             return NoContent();
         }
     }

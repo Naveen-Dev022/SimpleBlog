@@ -13,26 +13,30 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 //Add versioing
-builder.Services.AddApiVersioning(opt =>
-{
-    opt.AssumeDefaultVersionWhenUnspecified = true;
-    opt.DefaultApiVersion = new ApiVersion(1, 0);
-    opt.ReportApiVersions = true;
-    opt.ApiVersionReader = ApiVersionReader.Combine(
-        new QueryStringApiVersionReader("api-version"),
-        new HeaderApiVersionReader("X-Version"),
-        new MediaTypeApiVersionReader("ver"));
-}).AddApiExplorer(options =>
-{
-    options.GroupNameFormat = "'v'VVV";
-    options.SubstituteApiVersionInUrl = true;
-});
+//builder.Services.AddApiVersioning(opt =>
+//{
+//    opt.AssumeDefaultVersionWhenUnspecified = true;
+//    opt.DefaultApiVersion = new ApiVersion(1, 0);
+//    opt.ReportApiVersions = true;
+//    opt.ApiVersionReader = ApiVersionReader.Combine(
+//        new QueryStringApiVersionReader("api-version"),
+//        new HeaderApiVersionReader("X-Version"),
+//        new MediaTypeApiVersionReader("ver"));
+//}).AddApiExplorer(options =>
+//{
+//    options.GroupNameFormat = "'v'VVV";
+//    options.SubstituteApiVersionInUrl = true;
+//});
 
 //Add Dbcontext Connection
 builder.Services.AddDbContext<AppDbContext>(option =>
 {
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
+builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
+
 
 builder.Services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
 {
@@ -71,10 +75,6 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-   app.UseSwagger(options =>
-    {
-        options.RouteTemplate = "/openapi/{documentName}.json";
-    });
     app.MapScalarApiReference();
     app.UseSwaggerUI();
 }

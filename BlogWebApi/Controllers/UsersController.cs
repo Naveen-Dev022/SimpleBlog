@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BlogWebApi.Controllers
 {
     [Route("api/[controller]")]
-    [ApiVersion("1.0")]
+    //[ApiVersion("1.0")]
     [ApiController]
     public class UsersController : ControllerBase
     {

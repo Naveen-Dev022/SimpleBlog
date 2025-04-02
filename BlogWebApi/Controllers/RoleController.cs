@@ -10,9 +10,9 @@ using System.Collections.Generic;
 namespace BlogWebApi.Controllers
 {
     [Route("api/[controller]")]
-    [Route("api/v{version:apiVersion}/[controller]")]
+    [Route("api/[controller]")]
 
-    [ApiVersion("1.0")]
+    //[ApiVersion("1.0")]
     [ApiController]
     public class RoleController(AppDbContext appDbContext) : ControllerBase
     {
@@ -28,7 +28,7 @@ namespace BlogWebApi.Controllers
                 return Ok(role);
         }
         [HttpPost]
-        public async Task<IActionResult> Roles(bool active,string roleInfo = "General")
+        public async Task<IActionResult> Role(bool active,string roleInfo = "General")
         {
             if (roleInfo is null && active is false)
                 return BadRequest();

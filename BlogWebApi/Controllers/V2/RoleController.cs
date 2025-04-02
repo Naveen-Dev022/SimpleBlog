@@ -9,12 +9,12 @@ using Microsoft.EntityFrameworkCore;
 namespace BlogWebApi.Controllers.V2
 {
     [Route("api/[controller]")]
-    [Route("api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("2.0")]
     [ApiController]
     public class RoleController(AppDbContext appDbContext) : ControllerBase
     {
         private readonly AppDbContext _dbContext = appDbContext;
+        [HttpGet]
+        [Route("Roles")]
         public async Task<IActionResult> Roles()
         {
             var role = await _dbContext.Roles.Where(a => a.IsActive == true).ToListAsync<Role>();
@@ -24,6 +24,7 @@ namespace BlogWebApi.Controllers.V2
                 return Ok(role);
         }
         [HttpPost]
+        [Route("Roles")]
         public async Task<IActionResult> Roles([FromBody] RoleDTO role)
         {
             if (role is null)
